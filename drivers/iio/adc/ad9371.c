@@ -40,7 +40,7 @@
 #include "mykonos/mykonos_user.h"
 
 #include "ad9371.h"
-
+#define DPD_ON
 #define FIRMWARE       "Mykonos_M3.bin"
 
 static const int ad9371_auxdac_scale_val2_lut[2][4] = {
