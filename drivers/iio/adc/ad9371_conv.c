@@ -95,7 +95,29 @@ static const struct axiadc_chip_info axiadc_chip_info_tbl[] = {
 		.channel[2] = AIM_CHAN(1, IIO_MOD_I, 2, 16, 'S'),
 		.channel[3] = AIM_CHAN(1, IIO_MOD_Q, 3, 16, 'S'),
 	},
-
+	[ID_AD9375] = {
+		.name = "AD9375",
+		.max_rate = 245760000,
+		.max_testmode = 0,
+		.num_channels = 4,
+		.scan_masks = ad9371_available_scan_masks,
+		.channel[0] = AIM_CHAN(0, IIO_MOD_I, 0, 16, 'S'),
+		.channel[1] = AIM_CHAN(0, IIO_MOD_Q, 1, 16, 'S'),
+		.channel[2] = AIM_CHAN(1, IIO_MOD_I, 2, 16, 'S'),
+		.channel[3] = AIM_CHAN(1, IIO_MOD_Q, 3, 16, 'S'),
+	},
+	//WT
+	[ID_AD9375_1] = {
+		.name = "AD9375-1",
+		.max_rate = 245760000,
+		.max_testmode = 0,
+		.num_channels = 4,
+		.scan_masks = ad9371_available_scan_masks,
+		.channel[0] = AIM_CHAN(0, IIO_MOD_I, 0, 16, 'S'),
+		.channel[1] = AIM_CHAN(0, IIO_MOD_Q, 1, 16, 'S'),
+		.channel[2] = AIM_CHAN(1, IIO_MOD_I, 2, 16, 'S'),
+		.channel[3] = AIM_CHAN(1, IIO_MOD_Q, 3, 16, 'S'),
+	},
 
 };
 
