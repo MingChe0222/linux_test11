@@ -42,7 +42,7 @@
 #include "ad9371.h"
 
 #define FIRMWARE       "Mykonos_M3.bin"
-
+#define DPD_ON
 static const int ad9371_auxdac_scale_val2_lut[2][4] = {
 	{560671, 590157, 613612, 637490}, /* Factor 0 */
 	{783951, 798128, 810932, 822608}, /* Factor 1 */
@@ -56,29 +56,46 @@ static const int ad9371_auxdac_offset_val1_lut[2][4] = {
 	{204, 524, 838, 1127}, /* Factor 0 */
 	{884, 1508, 2120, 2628}, /* Factor 1 */
 };
-
+#ifdef DPD_ON // JM Chen@2020/01/02
+static int16_t txFirCoefs[] = {-94,-26,282,177,-438,-368,756,732,-1170,-1337,1758,2479,-2648,-5088,4064,16760,16759,4110,-4881,-2247,2888,1917,-1440,-1296,745,828,-358,-474,164,298,-16,-94};
+static mykonosFir_t txFir =
+{
+    6,              /* Filter gain in dB*/
+    32,             /* Number of coefficients in the FIR filter*/
+    &txFirCoefs[0]  /* A pointer to an array of filter coefficients*/
+};
+#else
 static int16_t txFirCoefs[] = {-15,33,-92,207,-457,1094,-3342,21908,-4607,2226,-862,376,-169,72,-29,19};
-
 static mykonosFir_t txFir = {
 	6,              /* Filter gain in dB*/
 	16,             /* Number of coefficients in the FIR filter*/
 	&txFirCoefs[0]  /* A pointer to an array of filter coefficients*/
 };
+#endif
 
 static int16_t rxFirCoefs[] = {-20,6,66,22,-128,-54,240,126,-402,-248,634,444,-956,-756,1400,1244,-2028,-2050,2978,3538,-4646,-7046,9536,30880,30880,9536,-7046,-4646,3538,2978,-2050,-2028,1244,1400,-756,-956,444,634,-248,-402,126,240,-54,-128,22,66,6,-20};
-
 static mykonosFir_t rxFir = {
 	-6,             /* Filter gain in dB*/
 	48,             /* Number of coefficients in the FIR filter*/
 	&rxFirCoefs[0]  /* A pointer to an array of filter coefficients*/
 };
 
+#ifdef DPD_ON // JM Chen@2020/01/02
+static int16_t obsrxFirCoefs[] = {-14,-19,44,41,-89,-95,175,178,-303,-317,499,527,-779,-843,1184,1317,-1781,-2059,2760,3350,-4962,-7433,9822,32154,32154,9822,-7433,-4962,3350,2760,-2059,-1781,1317,1184,-843,-779,527,499,-317,-303,178,175,-95,-89,41,44,-19,-14};
+static mykonosFir_t obsrxFir =
+{
+    -6,             /* Filter gain in dB*/
+    48,             /* Number of coefficients in the FIR filter*/
+    &obsrxFirCoefs[0]/* A pointer to an array of filter coefficients*/
+};
+#else
 static int16_t obsrxFirCoefs[] = {150,-55,-64,354,-896,1788,-3101,4953,-7622,9914,-14047,25417,25417,-14047,9914,-7622,4953,-3101,1788,-896,354,-64,-55,150};
 static mykonosFir_t obsrxFir = {
 	0,              /* Filter gain in dB*/
 	24,             /* Number of coefficients in the FIR filter*/
 	&obsrxFirCoefs[0]/* A pointer to an array of filter coefficients*/
 };
+#endif
 
 static int16_t snifferFirCoefs[] = {-1,-5,-14,-23,-16,24,92,137,80,-120,-378,-471,-174,507,1174,1183,98,-1771,-3216,-2641,942,7027,13533,17738,17738,13533,7027,942,-2641,-3216,-1771,98,1183,1174,507,-174,-471,-378,-120,80,137,92,24,-16,-23,-14,-5,-1};
 static mykonosFir_t snifferRxFir= {
@@ -212,7 +229,11 @@ static int ad9371_alloc_mykonos_device(struct ad9371_rf_phy *phy)
 
 	DEVM_ALLOC_INIT(phy->mykDevice->tx->txProfile);
 	DEVM_ALLOC_INIT(phy->mykDevice->tx->txProfile->txFir);
-	DEVM_ALLOC_INIT_N(phy->mykDevice->tx->txProfile->txFir->coefs, 96);
+#ifdef DPD_ON // JM Chen@2020/01/02
+	DEVM_ALLOC_INIT_N(phy->mykDevice->tx->txProfile->txFir->coefs, 32);
+#else	
+	DEVM_ALLOC_INIT_N(phy->mykDevice->tx->txProfile->txFir->coefs, 96); //why 96?
+#endif	
 	DEVM_ALLOC_INIT(phy->mykDevice->tx->deframer);
 
 	if (IS_AD9375(phy)) {
@@ -223,7 +244,11 @@ static int ad9371_alloc_mykonos_device(struct ad9371_rf_phy *phy)
 
 	DEVM_ALLOC_INIT(phy->mykDevice->obsRx->orxProfile);
 	DEVM_ALLOC_INIT(phy->mykDevice->obsRx->orxProfile->rxFir);
+#ifdef DPD_ON // JM Chen@2020/01/02
+	DEVM_ALLOC_INIT_N(phy->mykDevice->obsRx->orxProfile->rxFir->coefs, 48);
+#else	
 	DEVM_ALLOC_INIT_N(phy->mykDevice->obsRx->orxProfile->rxFir->coefs, 72);
+#endif
 	DEVM_ALLOC_INIT(phy->mykDevice->obsRx->orxGainCtrl);
 	DEVM_ALLOC_INIT(phy->mykDevice->obsRx->orxAgcCtrl);
 	DEVM_ALLOC_INIT(phy->mykDevice->obsRx->orxAgcCtrl->peakAgc);
@@ -662,7 +687,11 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 		phy->tracking_cal_mask |= TRACK_RX1_QEC | TRACK_RX2_QEC;
 
 	if (has_tx_and_en(phy))
+#ifdef DPD_ON	// JM Chen@2020/01/02	
+		phy->tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD;
+#else
 		phy->tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC;
+#endif
 
 	/**********************************************************/
 	/**********************************************************/
@@ -3180,12 +3209,12 @@ static struct ad9371_phy_platform_data
 	AD9371_GET_PROFILE("adi,rx-profile-custom-adc-profile", phy->mykDevice->rx->rxProfile->customAdcProfile);
 
 	AD9371_OF_PROP("adi,obs-profile-adc-div", &phy->mykDevice->obsRx->orxProfile->adcDiv, 1);
-	AD9371_OF_PROP("adi,obs-profile-rx-fir-decimation", &phy->mykDevice->obsRx->orxProfile->rxFirDecimation, 1);
+	AD9371_OF_PROP("adi,obs-profile-rx-fir-decimation", &phy->mykDevice->obsRx->orxProfile->rxFirDecimation, 2);
 	AD9371_OF_PROP("adi,obs-profile-rx-dec5-decimation", &phy->mykDevice->obsRx->orxProfile->rxDec5Decimation, 5);
 	AD9371_OF_PROP("adi,obs-profile-en-high-rej-dec5", &phy->mykDevice->obsRx->orxProfile->enHighRejDec5, 0);
 	AD9371_OF_PROP("adi,obs-profile-rhb1-decimation", &phy->mykDevice->obsRx->orxProfile->rhb1Decimation, 1);
-	AD9371_OF_PROP("adi,obs-profile-iq-rate_khz", &phy->mykDevice->obsRx->orxProfile->iqRate_kHz, 245760);
-	AD9371_OF_PROP("adi,obs-profile-rf-bandwidth_hz", &phy->mykDevice->obsRx->orxProfile->rfBandwidth_Hz, 200000000);
+	AD9371_OF_PROP("adi,obs-profile-iq-rate_khz", &phy->mykDevice->obsRx->orxProfile->iqRate_kHz, 122880);
+	AD9371_OF_PROP("adi,obs-profile-rf-bandwidth_hz", &phy->mykDevice->obsRx->orxProfile->rfBandwidth_Hz, 100000000);
 	AD9371_OF_PROP("adi,obs-profile-rx-bbf-3db-corner_khz", &phy->mykDevice->obsRx->orxProfile->rxBbf3dBCorner_kHz, 100000);
 
 	AD9371_GET_FIR("adi,obs-profile-rx-fir", phy->mykDevice->obsRx->orxProfile->rxFir);
@@ -3204,17 +3233,17 @@ static struct ad9371_phy_platform_data
 	AD9371_GET_PROFILE("adi,sniffer-profile-custom-adc-profile", phy->mykDevice->obsRx->snifferProfile->customAdcProfile);
 
 	AD9371_OF_PROP("adi,tx-profile-dac-div", &phy->mykDevice->tx->txProfile->dacDiv, 1);
-	AD9371_OF_PROP("adi,tx-profile-tx-fir-interpolation", &phy->mykDevice->tx->txProfile->txFirInterpolation, 1);
+	AD9371_OF_PROP("adi,tx-profile-tx-fir-interpolation", &phy->mykDevice->tx->txProfile->txFirInterpolation, 2);
 	AD9371_OF_PROP("adi,tx-profile-thb1-interpolation", &phy->mykDevice->tx->txProfile->thb1Interpolation, 2);
 	AD9371_OF_PROP("adi,tx-profile-thb2-interpolation", &phy->mykDevice->tx->txProfile->thb2Interpolation, 1);
-	AD9371_OF_PROP("adi,tx-profile-tx-input-hb-interpolation", &phy->mykDevice->tx->txProfile->txInputHbInterpolation, 1);
-	AD9371_OF_PROP("adi,tx-profile-iq-rate_khz", &phy->mykDevice->tx->txProfile->iqRate_kHz, 245760);
-	AD9371_OF_PROP("adi,tx-profile-primary-sig-bandwidth_hz", &phy->mykDevice->tx->txProfile->primarySigBandwidth_Hz, 75000000);
-	AD9371_OF_PROP("adi,tx-profile-rf-bandwidth_hz", &phy->mykDevice->tx->txProfile->rfBandwidth_Hz, 200000000);
-	AD9371_OF_PROP("adi,tx-profile-tx-dac-3db-corner_khz", &phy->mykDevice->tx->txProfile->txDac3dBCorner_kHz, 189477);
-	AD9371_OF_PROP("adi,tx-profile-tx-bbf-3db-corner_khz", &phy->mykDevice->tx->txProfile->txBbf3dBCorner_kHz, 100000);
+	AD9371_OF_PROP("adi,tx-profile-tx-input-hb-interpolation", &phy->mykDevice->tx->txProfile->txInputHbInterpolation, 2);
+	AD9371_OF_PROP("adi,tx-profile-iq-rate_khz", &phy->mykDevice->tx->txProfile->iqRate_kHz, 61440);
+	AD9371_OF_PROP("adi,tx-profile-primary-sig-bandwidth_hz", &phy->mykDevice->tx->txProfile->primarySigBandwidth_Hz, 20000000);
+	AD9371_OF_PROP("adi,tx-profile-rf-bandwidth_hz", &phy->mykDevice->tx->txProfile->rfBandwidth_Hz, 100000000);
+	AD9371_OF_PROP("adi,tx-profile-tx-dac-3db-corner_khz", &phy->mykDevice->tx->txProfile->txDac3dBCorner_kHz, 710539);
+	AD9371_OF_PROP("adi,tx-profile-tx-bbf-3db-corner_khz", &phy->mykDevice->tx->txProfile->txBbf3dBCorner_kHz, 50000);
 	if (IS_AD9375(phy))
-		AD9371_OF_PROP("adi,tx-profile-enable-dpd-data-path", &phy->mykDevice->tx->txProfile->enableDpdDataPath, 1);
+		AD9371_OF_PROP("adi,tx-profile-enable-dpd-data-path", &phy->mykDevice->tx->txProfile->enableDpdDataPath, 1); //or 0
 
 	AD9371_GET_FIR("adi,tx-profile-tx-fir", phy->mykDevice->tx->txProfile->txFir);
 
@@ -3225,19 +3254,19 @@ static struct ad9371_phy_platform_data
 
 	AD9371_OF_PROP("adi,tx-settings-tx-channels-enable", &phy->mykDevice->tx->txChannels, TX1_TX2);
 	AD9371_OF_PROP("adi,tx-settings-tx-pll-use-external-lo", &phy->mykDevice->tx->txPllUseExternalLo, 0);
-	AD9371_OF_PROP("adi,tx-settings-tx-pll-lo-frequency_hz", &phy->mykDevice->tx->txPllLoFrequency_Hz, 2500000000U);
+	AD9371_OF_PROP("adi,tx-settings-tx-pll-lo-frequency_hz", &phy->mykDevice->tx->txPllLoFrequency_Hz, 2650000000U);
 	AD9371_OF_PROP("adi,tx-settings-tx-atten-step-size", &phy->mykDevice->tx->txAttenStepSize, 0);
-	AD9371_OF_PROP("adi,tx-settings-tx1-atten_mdb", &phy->mykDevice->tx->tx1Atten_mdB, 10000);
-	AD9371_OF_PROP("adi,tx-settings-tx2-atten_mdb", &phy->mykDevice->tx->tx2Atten_mdB, 10000);
+	AD9371_OF_PROP("adi,tx-settings-tx1-atten_mdb", &phy->mykDevice->tx->tx1Atten_mdB, 100);
+	AD9371_OF_PROP("adi,tx-settings-tx2-atten_mdb", &phy->mykDevice->tx->tx2Atten_mdB, 100);
 
 	if (IS_AD9375(phy)) {
-		AD9371_OF_PROP("adi,dpd-damping", &phy->mykDevice->tx->dpdConfig->damping, 5);
+		AD9371_OF_PROP("adi,dpd-damping", &phy->mykDevice->tx->dpdConfig->damping, 12);
 		AD9371_OF_PROP("adi,dpd-num-weights", &phy->mykDevice->tx->dpdConfig->numWeights, 1);
-		AD9371_OF_PROP("adi,dpd-model-version", &phy->mykDevice->tx->dpdConfig->modelVersion, 2);
+		AD9371_OF_PROP("adi,dpd-model-version", &phy->mykDevice->tx->dpdConfig->modelVersion, 1);
 		AD9371_OF_PROP("adi,dpd-high-power-model-update", &phy->mykDevice->tx->dpdConfig->highPowerModelUpdate, 1);
 		AD9371_OF_PROP("adi,dpd-model-prior-weight", &phy->mykDevice->tx->dpdConfig->modelPriorWeight, 20);
 		AD9371_OF_PROP("adi,dpd-robust-modeling", &phy->mykDevice->tx->dpdConfig->robustModeling, 0);
-		AD9371_OF_PROP("adi,dpd-samples", &phy->mykDevice->tx->dpdConfig->samples, 512);
+		AD9371_OF_PROP("adi,dpd-samples", &phy->mykDevice->tx->dpdConfig->samples, 2048);
 		AD9371_OF_PROP("adi,dpd-outlier-threshold", &phy->mykDevice->tx->dpdConfig->outlierThreshold, 4096);
 		AD9371_OF_PROP("adi,dpd-additional-delay-offset", &phy->mykDevice->tx->dpdConfig->additionalDelayOffset, 0);
 		AD9371_OF_PROP("adi,dpd-path-delay-pn-seq-level", &phy->mykDevice->tx->dpdConfig->pathDelayPnSeqLevel, 255);
