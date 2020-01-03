@@ -3277,7 +3277,7 @@ static struct ad9371_phy_platform_data
 		AD9371_OF_PROP("adi,dpd-weights1-imag", &phy->mykDevice->tx->dpdConfig->weights[1].imag, 0);
 		AD9371_OF_PROP("adi,dpd-weights2-real", &phy->mykDevice->tx->dpdConfig->weights[2].real, 0);
 		AD9371_OF_PROP("adi,dpd-weights2-imag", &phy->mykDevice->tx->dpdConfig->weights[2].imag, 0);
-
+		printk(KERN_INFO "L3280: dpdConfig done");
 		AD9371_OF_PROP("adi,clgc-tx1-desired-gain", &phy->mykDevice->tx->clgcConfig->tx1DesiredGain, -2000);
 		AD9371_OF_PROP("adi,clgc-tx2-desired-gain", &phy->mykDevice->tx->clgcConfig->tx2DesiredGain, -2000);
 		AD9371_OF_PROP("adi,clgc-tx1-atten-limit", &phy->mykDevice->tx->clgcConfig->tx1AttenLimit, 0);
