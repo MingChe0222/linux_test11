@@ -689,6 +689,7 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	if (has_tx_and_en(phy))
 #ifdef DPD_ON	// JM Chen@2020/01/02	
 		phy->tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD;
+		printk(KERN_INFO "tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD;\n");
 #else
 		phy->tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC;
 #endif
@@ -896,7 +897,7 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 			ret = -EFAULT;
 			goto out;
 		}
-
+		printk(KERN_INFO "Dpd initial configuration done;\n");
 		ret = MYKONOS_configClgc(mykDevice);
 		if (ret != MYKONOS_ERR_OK) {
 			dev_err(&phy->spi->dev, "%s (%d)",
