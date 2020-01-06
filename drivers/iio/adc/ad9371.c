@@ -3036,7 +3036,7 @@ static struct ad9371_phy_platform_data
 			TX_ATTENUATION_DELAY | RX_GAIN_DELAY | FLASH_CAL |
 			PATH_DELAY | TX_LO_LEAKAGE_INTERNAL | TX_QEC_INIT |
 			LOOPBACK_RX_LO_DELAY | LOOPBACK_RX_RX_QEC_INIT |
-			RX_LO_DELAY | RX_QEC_INIT |
+			RX_LO_DELAY | RX_QEC_INIT | DPD_INIT |
 			(IS_AD9375(phy) ? DPD_INIT | CLGC_INIT | VSWR_INIT: 0));
 
 	AD9371_OF_PROP("adi,jesd204-rx-framer-bank-id", &phy->mykDevice->rx->framer->bankId, 0);
@@ -3317,7 +3317,7 @@ static struct ad9371_phy_platform_data
 	AD9371_OF_PROP("adi,obs-settings-obs-rx-lo-source", &phy->mykDevice->obsRx->obsRxLoSource, OBSLO_TX_PLL); //default: 0, option: OBSLO_TX_PLL
 	AD9371_OF_PROP("adi,obs-settings-sniffer-pll-lo-frequency_hz", &phy->mykDevice->obsRx->snifferPllLoFrequency_Hz, 2600000000U);
 	AD9371_OF_PROP("adi,obs-settings-real-if-data", &phy->mykDevice->obsRx->realIfData, 0);
-	AD9371_OF_PROP("adi,obs-settings-default-obs-rx-channel", &phy->mykDevice->obsRx->defaultObsRxChannel, OBS_RXOFF); //default: OBS_INTERNALCALS , option: OBS_RXOFF 
+	AD9371_OF_PROP("adi,obs-settings-default-obs-rx-channel", &phy->mykDevice->obsRx->defaultObsRxChannel, OBS_INTERNALCALS); //default: OBS_INTERNALCALS , option: OBS_RXOFF 
 
 	AD9371_GET_PROFILE("adi,obs-settings-custom-loopback-adc-profile", phy->mykDevice->obsRx->customLoopbackAdcProfile);
 
