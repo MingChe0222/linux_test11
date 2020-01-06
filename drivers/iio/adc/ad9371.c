@@ -4248,7 +4248,9 @@ static int ad9371_probe(struct spi_device *spi)
 	sysfs_bin_attr_init(&phy->bin);
 	phy->bin.attr.name = "profile_config";
 	phy->bin.attr.mode = S_IWUSR | S_IRUGO;
+	printk(KERN_INFO "===> L4251: ad9371_profile_bin_write\n");
 	phy->bin.write = ad9371_profile_bin_write;
+	printk(KERN_INFO "===> L4253: ad9371_profile_bin_read\n");
 	phy->bin.read = ad9371_profile_bin_read;
 	phy->bin.size = 8192;
 
