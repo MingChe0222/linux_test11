@@ -266,7 +266,7 @@ static int ad9371_alloc_mykonos_device(struct ad9371_rf_phy *phy)
 
 	/* Without profile being loaded we need some filter initially */
 
-	ad9371_fir_cpy(&obsrxFir, phy->mykDevice->obsRx->orxProfile->obsrxFir);
+	ad9371_fir_cpy(&obsrxFir, phy->mykDevice->obsRx->orxProfile->rxFir);
 	ad9371_fir_cpy(&snifferRxFir, phy->mykDevice->obsRx->snifferProfile->rxFir);
 	ad9371_fir_cpy(&rxFir, phy->mykDevice->rx->rxProfile->rxFir);
 	ad9371_fir_cpy(&txFir, phy->mykDevice->tx->txProfile->txFir);
@@ -3220,7 +3220,7 @@ static struct ad9371_phy_platform_data
 	AD9371_OF_PROP("adi,obs-profile-rf-bandwidth_hz", &phy->mykDevice->obsRx->orxProfile->rfBandwidth_Hz, 100000000);
 	AD9371_OF_PROP("adi,obs-profile-rx-bbf-3db-corner_khz", &phy->mykDevice->obsRx->orxProfile->rxBbf3dBCorner_kHz, 100000);
 
-	AD9371_GET_FIR("adi,obs-profile-rx-fir", phy->mykDevice->obsRx->orxProfile->obsrxFir);
+	AD9371_GET_FIR("adi,obs-profile-rx-fir", phy->mykDevice->obsRx->orxProfile->rxFir);
 	AD9371_GET_PROFILE("adi,obs-profile-custom-adc-profile", phy->mykDevice->obsRx->orxProfile->customAdcProfile);
 	printk(KERN_INFO "===> L3224: orxProfile done");
 	AD9371_OF_PROP("adi,sniffer-profile-adc-div", &phy->mykDevice->obsRx->snifferProfile->adcDiv, 1);
