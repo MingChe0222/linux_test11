@@ -689,7 +689,7 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	if (has_tx_and_en(phy))
 #ifdef DPD_ON	// JM Chen@2020/01/02	
 		phy->tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD;
-		printk(KERN_INFO "tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD;\n");
+		printk(KERN_INFO "===> L692: tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD;\n");
 #else
 		phy->tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC;
 #endif
@@ -896,8 +896,9 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 				getMykonosErrorMessage(ret), ret);
 			ret = -EFAULT;
 			goto out;
+			printk(KERN_INFO "===> L899: Dpd initial configuration ERROR;\n");
 		}
-		printk(KERN_INFO "Dpd initial configuration done;\n");
+		printk(KERN_INFO "===> L901: Dpd initial configuration done;\n");
 		ret = MYKONOS_configClgc(mykDevice);
 		if (ret != MYKONOS_ERR_OK) {
 			dev_err(&phy->spi->dev, "%s (%d)",
@@ -3220,7 +3221,7 @@ static struct ad9371_phy_platform_data
 
 	AD9371_GET_FIR("adi,obs-profile-rx-fir", phy->mykDevice->obsRx->orxProfile->obsrxFirCoefs);
 	AD9371_GET_PROFILE("adi,obs-profile-custom-adc-profile", phy->mykDevice->obsRx->orxProfile->customAdcProfile);
-
+	printk(KERN_INFO "===> L3224: orxProfile done");
 	AD9371_OF_PROP("adi,sniffer-profile-adc-div", &phy->mykDevice->obsRx->snifferProfile->adcDiv, 1);
 	AD9371_OF_PROP("adi,sniffer-profile-rx-fir-decimation", &phy->mykDevice->obsRx->snifferProfile->rxFirDecimation, 4);
 	AD9371_OF_PROP("adi,sniffer-profile-rx-dec5-decimation", &phy->mykDevice->obsRx->snifferProfile->rxDec5Decimation, 5);
@@ -3244,8 +3245,11 @@ static struct ad9371_phy_platform_data
 	AD9371_OF_PROP("adi,tx-profile-tx-dac-3db-corner_khz", &phy->mykDevice->tx->txProfile->txDac3dBCorner_kHz, 710539);
 	AD9371_OF_PROP("adi,tx-profile-tx-bbf-3db-corner_khz", &phy->mykDevice->tx->txProfile->txBbf3dBCorner_kHz, 50000);
 	if (IS_AD9375(phy))
+	{
 		AD9371_OF_PROP("adi,tx-profile-enable-dpd-data-path", &phy->mykDevice->tx->txProfile->enableDpdDataPath, 0); //1 or 0
-
+		printk(KERN_INFO "===> L3250: enableDpdDataPath = 0");
+	}
+	printk(KERN_INFO "===> L3252: txProfile done");
 	AD9371_GET_FIR("adi,tx-profile-tx-fir", phy->mykDevice->tx->txProfile->txFir);
 
 	AD9371_OF_PROP("adi,clocks-device-clock_khz", &phy->mykDevice->clocks->deviceClock_kHz, 122880);
@@ -3277,7 +3281,7 @@ static struct ad9371_phy_platform_data
 		AD9371_OF_PROP("adi,dpd-weights1-imag", &phy->mykDevice->tx->dpdConfig->weights[1].imag, 0);
 		AD9371_OF_PROP("adi,dpd-weights2-real", &phy->mykDevice->tx->dpdConfig->weights[2].real, 0);
 		AD9371_OF_PROP("adi,dpd-weights2-imag", &phy->mykDevice->tx->dpdConfig->weights[2].imag, 0);
-		printk(KERN_INFO "L3280: dpdConfig done");
+		printk(KERN_INFO "===> L3284: dpdConfig done");
 		AD9371_OF_PROP("adi,clgc-tx1-desired-gain", &phy->mykDevice->tx->clgcConfig->tx1DesiredGain, -2000);
 		AD9371_OF_PROP("adi,clgc-tx2-desired-gain", &phy->mykDevice->tx->clgcConfig->tx2DesiredGain, -2000);
 		AD9371_OF_PROP("adi,clgc-tx1-atten-limit", &phy->mykDevice->tx->clgcConfig->tx1AttenLimit, 0);
@@ -3434,7 +3438,7 @@ static int ad9371_parse_profile(struct ad9371_rf_phy *phy,
 
 		if (!header && strstr(line, "<profile AD937")) {
 			ret = sscanf(line, " <profile AD%d version=%d", &type, &version);
-			printk(KERN_INFO " ====> L3437: <profile AD%d version=%d\n", &type, &version);
+			printk(KERN_INFO " ===> L3437: <profile AD%d version=%d\n", &type, &version);
 			if (ret == 2 && version == 0 && (type == 9371 || type == 9375))
 				header = 1;
 			else
@@ -3457,7 +3461,7 @@ static int ad9371_parse_profile(struct ad9371_rf_phy *phy,
 
 		if (!dpdconfig && strstr(line, "<DpdConfig>")) {
 			dpdconfig = IS_AD9375(phy);
-			printk(KERN_INFO "  ====> L3460:  dpdconfig = IS_AD9375(phy)\n");
+			printk(KERN_INFO "  ====> L3464:  dpdconfig = IS_AD9375(phy)\n");
 			continue;
 		}
 
@@ -3465,7 +3469,7 @@ static int ad9371_parse_profile(struct ad9371_rf_phy *phy,
 			dpdconfig = 0;
 			retval = 1;
 			continue;
-			printk(KERN_INFO "  ====> L3468:  dpdconfig = 0\n");
+			printk(KERN_INFO "  ====> L3472:  dpdconfig = 0\n");
 		}
 
 		if (!clgcconfig && strstr(line, "<ClgcConfig>")) {
@@ -3506,6 +3510,7 @@ static int ad9371_parse_profile(struct ad9371_rf_phy *phy,
 			rx = 1;
 			rx_profile = mykDevice->obsRx->orxProfile;
 			fir = rx_profile->rxFir;
+			printk(KERN_INFO "  ====> L3513:  rx_profile = mykDevice->obsRx->orxProfile\n");
 			continue;
 		}
 
@@ -3598,7 +3603,7 @@ static int ad9371_parse_profile(struct ad9371_rf_phy *phy,
 			GET_STOKEN(mykDevice->tx->dpdConfig, weights[1].imag);
 			GET_STOKEN(mykDevice->tx->dpdConfig, weights[2].real);
 			GET_STOKEN(mykDevice->tx->dpdConfig, weights[2].imag);
-			printk(KERN_INFO "  ====> L3601:  GET_STOKEN(mykDevice->tx->dpdConfig\n");
+			printk(KERN_INFO "  ===> L3605:  GET_STOKEN(mykDevice->tx->dpdConfig\n");
 		}
 
 		if (clgcconfig) {
@@ -3774,9 +3779,9 @@ ad9371_profile_bin_write(struct file *filp, struct kobject *kobj,
 				getMykonosErrorMessage(ret), ret);
 			ret = -EFAULT;
 			goto out_unlock;
-			printk(KERN_INFO "===> L3777: ret = MYKONOS_configDpd(phy->mykDevice);===> MYKONOS_ERR_OK\n");
+			printk(KERN_INFO "===> L3782: ret = MYKONOS_configDpd(phy->mykDevice);===> MYKONOS_ERR_OK\n");
 		}
-		printk(KERN_INFO "===> L3779: ret = MYKONOS_configDpd(phy->mykDevice);\n");
+		printk(KERN_INFO "===> L3784: ret = MYKONOS_configDpd(phy->mykDevice);\n");
 		ret = MYKONOS_configClgc(phy->mykDevice);
 		if (ret != MYKONOS_ERR_OK) {
 			dev_err(&phy->spi->dev, "%s (%d)",
