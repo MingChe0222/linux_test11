@@ -3038,7 +3038,7 @@ static struct ad9371_phy_platform_data
 			LOOPBACK_RX_LO_DELAY | LOOPBACK_RX_RX_QEC_INIT |
 			RX_LO_DELAY | RX_QEC_INIT | DPD_INIT |
 			(IS_AD9375(phy) ? DPD_INIT | CLGC_INIT | VSWR_INIT: 0));
-
+	printk(KERN_INFO "===> L3041: adi,default-initial-calibrations-mask | DPD_INIT");
 	AD9371_OF_PROP("adi,jesd204-rx-framer-bank-id", &phy->mykDevice->rx->framer->bankId, 0);
 	AD9371_OF_PROP("adi,jesd204-rx-framer-device-id", &phy->mykDevice->rx->framer->deviceId, 0);
 	AD9371_OF_PROP("adi,jesd204-rx-framer-lane0-id", &phy->mykDevice->rx->framer->lane0Id, 0);
