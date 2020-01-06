@@ -4211,10 +4211,10 @@ static int ad9371_probe(struct spi_device *spi)
 			"request_firmware() failed with %d\n", ret);
 		return ret;
 	}
-
+	printk(KERN_INFO "===> L4214: First, ad9371_setup(phy)\n");
 	ret = ad9371_setup(phy);
 	if (ret < 0) {
-		/* Try once more */
+		/* Try once more */printk(KERN_INFO "===> L4217: Secondly, ad9371_setup(phy)\n");
 		ret = ad9371_setup(phy);
 		if (ret < 0)
 			goto out_unregister_notifier;
