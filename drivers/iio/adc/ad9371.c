@@ -3063,8 +3063,8 @@ static struct ad9371_phy_platform_data
 	AD9371_OF_PROP("adi,jesd204-obs-framer-k", &phy->mykDevice->obsRx->framer->K, 32);
 	AD9371_OF_PROP("adi,jesd204-obs-framer-scramble", &phy->mykDevice->obsRx->framer->scramble, 1);
 	AD9371_OF_PROP("adi,jesd204-obs-framer-external-sysref", &phy->mykDevice->obsRx->framer->externalSysref, 1);
-	AD9371_OF_PROP("adi,jesd204-obs-framer-serializer-lanes-enabled", &phy->mykDevice->obsRx->framer->serializerLanesEnabled, 0xc);
-	AD9371_OF_PROP("adi,jesd204-obs-framer-serializer-lane-crossbar", &phy->mykDevice->obsRx->framer->serializerLaneCrossbar, 0xe4);
+	AD9371_OF_PROP("adi,jesd204-obs-framer-serializer-lanes-enabled", &phy->mykDevice->obsRx->framer->serializerLanesEnabled, 0x0c);
+	AD9371_OF_PROP("adi,jesd204-obs-framer-serializer-lane-crossbar", &phy->mykDevice->obsRx->framer->serializerLaneCrossbar, 0x40);
 	AD9371_OF_PROP("adi,jesd204-obs-framer-serializer-amplitude", &phy->mykDevice->obsRx->framer->serializerAmplitude, 22);
 	AD9371_OF_PROP("adi,jesd204-obs-framer-pre-emphasis", &phy->mykDevice->obsRx->framer->preEmphasis, 4);
 	AD9371_OF_PROP("adi,jesd204-obs-framer-invert-lane-polarity", &phy->mykDevice->obsRx->framer->invertLanePolarity, 0);
@@ -3218,7 +3218,7 @@ static struct ad9371_phy_platform_data
 	AD9371_OF_PROP("adi,obs-profile-rf-bandwidth_hz", &phy->mykDevice->obsRx->orxProfile->rfBandwidth_Hz, 100000000);
 	AD9371_OF_PROP("adi,obs-profile-rx-bbf-3db-corner_khz", &phy->mykDevice->obsRx->orxProfile->rxBbf3dBCorner_kHz, 100000);
 
-	AD9371_GET_FIR("adi,obs-profile-rx-fir", phy->mykDevice->obsRx->orxProfile->rxFir);
+	AD9371_GET_FIR("adi,obs-profile-rx-fir", phy->mykDevice->obsRx->orxProfile->obsrxFirCoefs);
 	AD9371_GET_PROFILE("adi,obs-profile-custom-adc-profile", phy->mykDevice->obsRx->orxProfile->customAdcProfile);
 
 	AD9371_OF_PROP("adi,sniffer-profile-adc-div", &phy->mykDevice->obsRx->snifferProfile->adcDiv, 1);
@@ -3244,7 +3244,7 @@ static struct ad9371_phy_platform_data
 	AD9371_OF_PROP("adi,tx-profile-tx-dac-3db-corner_khz", &phy->mykDevice->tx->txProfile->txDac3dBCorner_kHz, 710539);
 	AD9371_OF_PROP("adi,tx-profile-tx-bbf-3db-corner_khz", &phy->mykDevice->tx->txProfile->txBbf3dBCorner_kHz, 50000);
 	if (IS_AD9375(phy))
-		AD9371_OF_PROP("adi,tx-profile-enable-dpd-data-path", &phy->mykDevice->tx->txProfile->enableDpdDataPath, 1); //or 0
+		AD9371_OF_PROP("adi,tx-profile-enable-dpd-data-path", &phy->mykDevice->tx->txProfile->enableDpdDataPath, 0); //1 or 0
 
 	AD9371_GET_FIR("adi,tx-profile-tx-fir", phy->mykDevice->tx->txProfile->txFir);
 
@@ -3309,10 +3309,10 @@ static struct ad9371_phy_platform_data
 	AD9371_OF_PROP("adi,rx-settings-real-if-data", &phy->mykDevice->rx->realIfData, 0);
 
 	AD9371_OF_PROP("adi,obs-settings-obs-rx-channels-enable", &phy->mykDevice->obsRx->obsRxChannelsEnable, MYK_ORX1_ORX2 | MYK_SNRXA_B_C);
-	AD9371_OF_PROP("adi,obs-settings-obs-rx-lo-source", &phy->mykDevice->obsRx->obsRxLoSource, 0);
+	AD9371_OF_PROP("adi,obs-settings-obs-rx-lo-source", &phy->mykDevice->obsRx->obsRxLoSource, OBSLO_TX_PLL); //default: 0, option: OBSLO_TX_PLL
 	AD9371_OF_PROP("adi,obs-settings-sniffer-pll-lo-frequency_hz", &phy->mykDevice->obsRx->snifferPllLoFrequency_Hz, 2600000000U);
 	AD9371_OF_PROP("adi,obs-settings-real-if-data", &phy->mykDevice->obsRx->realIfData, 0);
-	AD9371_OF_PROP("adi,obs-settings-default-obs-rx-channel", &phy->mykDevice->obsRx->defaultObsRxChannel, OBS_INTERNALCALS);
+	AD9371_OF_PROP("adi,obs-settings-default-obs-rx-channel", &phy->mykDevice->obsRx->defaultObsRxChannel, OBS_RXOFF); //default: OBS_INTERNALCALS , option: OBS_RXOFF 
 
 	AD9371_GET_PROFILE("adi,obs-settings-custom-loopback-adc-profile", phy->mykDevice->obsRx->customLoopbackAdcProfile);
 
@@ -3434,7 +3434,7 @@ static int ad9371_parse_profile(struct ad9371_rf_phy *phy,
 
 		if (!header && strstr(line, "<profile AD937")) {
 			ret = sscanf(line, " <profile AD%d version=%d", &type, &version);
-
+			printk(KERN_INFO " ====> L3437: <profile AD%d version=%d\n", &type, &version);
 			if (ret == 2 && version == 0 && (type == 9371 || type == 9375))
 				header = 1;
 			else
@@ -3457,6 +3457,7 @@ static int ad9371_parse_profile(struct ad9371_rf_phy *phy,
 
 		if (!dpdconfig && strstr(line, "<DpdConfig>")) {
 			dpdconfig = IS_AD9375(phy);
+			printk(KERN_INFO "  ====> L3460:  dpdconfig = IS_AD9375(phy)\n");
 			continue;
 		}
 
@@ -3464,6 +3465,7 @@ static int ad9371_parse_profile(struct ad9371_rf_phy *phy,
 			dpdconfig = 0;
 			retval = 1;
 			continue;
+			printk(KERN_INFO "  ====> L3468:  dpdconfig = 0\n");
 		}
 
 		if (!clgcconfig && strstr(line, "<ClgcConfig>")) {
@@ -3596,6 +3598,7 @@ static int ad9371_parse_profile(struct ad9371_rf_phy *phy,
 			GET_STOKEN(mykDevice->tx->dpdConfig, weights[1].imag);
 			GET_STOKEN(mykDevice->tx->dpdConfig, weights[2].real);
 			GET_STOKEN(mykDevice->tx->dpdConfig, weights[2].imag);
+			printk(KERN_INFO "  ====> L3601:  GET_STOKEN(mykDevice->tx->dpdConfig\n");
 		}
 
 		if (clgcconfig) {
@@ -3771,8 +3774,9 @@ ad9371_profile_bin_write(struct file *filp, struct kobject *kobj,
 				getMykonosErrorMessage(ret), ret);
 			ret = -EFAULT;
 			goto out_unlock;
+			printk(KERN_INFO "===> L3777: ret = MYKONOS_configDpd(phy->mykDevice);===> MYKONOS_ERR_OK\n");
 		}
-
+		printk(KERN_INFO "===> L3779: ret = MYKONOS_configDpd(phy->mykDevice);\n");
 		ret = MYKONOS_configClgc(phy->mykDevice);
 		if (ret != MYKONOS_ERR_OK) {
 			dev_err(&phy->spi->dev, "%s (%d)",
