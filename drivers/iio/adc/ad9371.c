@@ -3747,7 +3747,7 @@ ad9371_profile_bin_write(struct file *filp, struct kobject *kobj,
 	struct iio_dev *indio_dev = dev_to_iio_dev(kobj_to_dev(kobj));
 	struct ad9371_rf_phy *phy = iio_priv(indio_dev);
 	int ret;
-
+	printk(KERN_INFO "===> L3750: off = %d\n", off);
 	if (off == 0) {
 		if (phy->bin_attr_buf == NULL) {
 			phy->bin_attr_buf = devm_kzalloc(&phy->spi->dev,
@@ -3760,17 +3760,18 @@ ad9371_profile_bin_write(struct file *filp, struct kobject *kobj,
 	}
 
 	memcpy(phy->bin_attr_buf + off, buf, count);
-
+	printk(KERN_INFO "===> L3763: ret = %d\n", off + count);
 	if (strnstr(phy->bin_attr_buf, "</profile>", off + count) == NULL)
 		return count;
 
 	ret = ad9371_parse_profile(phy, phy->bin_attr_buf, off + count);
+	printk(KERN_INFO "===> L3769: ret = %d\n", ret);
 	if (ret < 0)
 		return ret;
 
 
 	mutex_lock(&phy->indio_dev->mlock);
-
+	
 	if (IS_AD9375(phy) && ret == 1) {
 		ad9371_set_radio_state(phy, RADIO_FORCE_OFF);
 
