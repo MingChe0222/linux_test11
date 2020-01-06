@@ -2997,7 +2997,7 @@ static struct ad9371_phy_platform_data
 	struct ad9371_phy_platform_data *pdata;
 	struct ad9371_rf_phy *phy = iio_priv(iodev);
 	int ret;
-
+printk(KERN_INFO "===> L3000: PAR STA");
 #define ad9371_of_get_u32(iodev, dnp, name, def, outp) \
 	__ad9371_of_get_u32(iodev, dnp, name, def, outp, sizeof(*outp))
 
@@ -3734,7 +3734,7 @@ static int ad9371_parse_profile(struct ad9371_rf_phy *phy,
 		return -EINVAL;
 
 	}
-
+printk(KERN_INFO "===> L3737: PAR EBD");
 	return -EINVAL;
 }
 
