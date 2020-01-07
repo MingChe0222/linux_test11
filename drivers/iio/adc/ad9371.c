@@ -690,7 +690,7 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	if (has_tx_and_en(phy))
 #ifdef DPD_ON	// JM Chen@2020/01/02	
 		phy->tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD;
-		printk(KERN_INFO "==========================================================================> L692: tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD; \n");
+		printk(KERN_INFO "======> L692: tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD; \n");
 #else
 		phy->tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC;
 #endif
@@ -3743,7 +3743,7 @@ ad9371_profile_bin_write(struct file *filp, struct kobject *kobj,
 		       struct bin_attribute *bin_attr,
 		       char *buf, loff_t off, size_t count)
 {
-
+	printk(KERN_INFO "===> L3746: ad9371_profile_bin_write START\n");
 	struct iio_dev *indio_dev = dev_to_iio_dev(kobj_to_dev(kobj));
 	struct ad9371_rf_phy *phy = iio_priv(indio_dev);
 	int ret;
@@ -3807,7 +3807,7 @@ ad9371_profile_bin_write(struct file *filp, struct kobject *kobj,
 
 out_unlock:
 	mutex_unlock(&phy->indio_dev->mlock);
-
+	printk(KERN_INFO "===> L3746: ad9371_profile_bin_write END\n");
 	return (ret < 0) ? ret : count;
 }
 
