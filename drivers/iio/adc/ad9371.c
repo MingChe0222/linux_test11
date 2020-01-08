@@ -7,7 +7,7 @@
  */
 //#define DEBUG
 //#define _DEBUG
-// test3
+// test4
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/kernel.h>
@@ -690,7 +690,7 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	if (has_tx_and_en(phy))
 #ifdef DPD_ON	// JM Chen@2020/01/02	
 		phy->tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD;
-		printk(KERN_INFO "test3 ======> L692: tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD; \n");
+		printk(KERN_INFO "test4 ======> L692: tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD; \n");
 #else
 		phy->tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC;
 #endif
@@ -1072,23 +1072,23 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 			dev_err(&phy->spi->dev, "%s (%d)",
 				getMykonosErrorMessage(ret), ret);
 			ret = -EFAULT;
-			goto out_unlock;
-			printk(KERN_INFO "===> L3782: ret = MYKONOS_configDpd(phy->mykDevice);===> MYKONOS_ERR_OK\n");
+			//goto out_unlock;
+			printk(KERN_INFO "===> 1077: ret = MYKONOS_configDpd(phy->mykDevice);===> MYKONOS_ERR_OK\n");
 		}
-		printk(KERN_INFO "===> L3784: ret = MYKONOS_configDpd(phy->mykDevice);\n");
+		printk(KERN_INFO "===> L1078: ret = MYKONOS_configDpd(phy->mykDevice);\n");
 
 		ad9371_set_radio_state(phy, RADIO_RESTORE_STATE);
 	}	
 	
 	uint32_t initCalMaskDpd = phy->init_cal_mask |= DPD_INIT; //add DPD_INIT by JM Chen @20200107
 	initCalMaskDpd = initCalMask|DPD_INIT;
-	printk(KERN_INFO "===> L1083:  MYKONOS_runInitCals;\n");
+	printk(KERN_INFO "===> L1085:  MYKONOS_runInitCals;\n");
 	if ((mykError = MYKONOS_runInitCals(phy->mykDevice, initCalMaskDpd)) != MYKONOS_ERR_OK) {
 	    errorString = getMykonosErrorMessage(mykError);
 	    goto error;
 	  }
 
-	  printk(KERN_INFO "===> L1083: MYKONOS_waitInitCals;\n");
+	  printk(KERN_INFO "===> L1085: MYKONOS_waitInitCals;\n");
 	  if ((mykError = MYKONOS_waitInitCals(phy->mykDevice, 60000, &errorFlag, &errorCode)) != MYKONOS_ERR_OK) {
 	    errorString = getMykonosErrorMessage(mykError);
 	    goto error;
