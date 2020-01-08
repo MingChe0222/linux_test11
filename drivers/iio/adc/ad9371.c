@@ -583,7 +583,7 @@ static int ad9371_get_vswr_status(struct ad9371_rf_phy *phy, int chan)
 
 static int ad9371_init_cal(struct ad9371_rf_phy *phy, uint32_t initCalMask)
 {
-	printk(KERN_INFO "===> L586: ad9371_init_cal START")
+	printk(KERN_INFO "===> L586: ad9371_init_cal START");
 	uint8_t errorFlag = 0;
 	uint8_t errorCode = 0;
 	uint32_t initCalsCompleted = 0;
@@ -639,7 +639,7 @@ static int ad9371_init_cal(struct ad9371_rf_phy *phy, uint32_t initCalMask)
 				getMykonosErrorMessage(mykError), mykError);
 		}
 	}
-	printk(KERN_INFO "===> L586: ad9371_init_cal END")
+	printk(KERN_INFO "===> L586: ad9371_init_cal END");
 	return 0;
 }
 
@@ -1061,7 +1061,7 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	/*** < User: When links have been verified, proceed > ***/
 
 	//add MYKONOS_configDpd by JM Chen @20200107
-/*#ifdef DPD_ON
+#ifdef DPD_ON
 	uint8_t errorFlag = 0;
 	uint8_t errorCode = 0;
 	if (IS_AD9375(phy)) {
@@ -1093,7 +1093,7 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	    errorString = getMykonosErrorMessage(mykError);
 	    goto error;
 	  }
-#endif	*/
+#endif	
 
 	
 	/* Allow Rx1/2 QEC tracking and Tx1/2 QEC tracking to run when in the radioOn state         */
