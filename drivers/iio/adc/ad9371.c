@@ -1062,6 +1062,8 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 
 	//add MYKONOS_configDpd by JM Chen @20200107
 #ifdef DPD_ON
+	uint8_t errorFlag = 0;
+	uint8_t errorCode = 0;
 	if (IS_AD9375(phy)) {
 		ad9371_set_radio_state(phy, RADIO_FORCE_OFF);
 
