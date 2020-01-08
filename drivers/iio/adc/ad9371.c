@@ -1061,7 +1061,7 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	/*** < User: When links have been verified, proceed > ***/
 
 	//add MYKONOS_configDpd by JM Chen @20200107
-#ifdef DPD_ON
+/*#ifdef DPD_ON
 	uint8_t errorFlag = 0;
 	uint8_t errorCode = 0;
 	if (IS_AD9375(phy)) {
@@ -1093,7 +1093,7 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	    errorString = getMykonosErrorMessage(mykError);
 	    goto error;
 	  }
-#endif	
+#endif	*/
 
 	
 	/* Allow Rx1/2 QEC tracking and Tx1/2 QEC tracking to run when in the radioOn state         */
