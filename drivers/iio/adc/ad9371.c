@@ -7,7 +7,7 @@
  */
 //#define DEBUG
 //#define _DEBUG
-// test5
+// test6
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/kernel.h>
@@ -639,7 +639,7 @@ static int ad9371_init_cal(struct ad9371_rf_phy *phy, uint32_t initCalMask)
 				getMykonosErrorMessage(mykError), mykError);
 		}
 	}
-	printk(KERN_INFO "===> L586: ad9371_init_cal END");
+	printk(KERN_INFO "===> L642: ad9371_init_cal END");
 	return 0;
 }
 
@@ -1068,6 +1068,7 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	uint16_t errorWord = 0;
 	uint16_t statusWord = 0;
 	uint8_t status = 0;
+	const char      *errorString;
 	mykonosInitCalStatus_t initCalStatus;
 	mykonosErr_t mykError;	
 
@@ -1133,12 +1134,31 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 				getMykonosErrorMessage(mykError), mykError);
 		}
 	}
-#endif	
+	else {
+    	printk(KERN_INFO "===> L1137: DPD Initial Calibrations completed successfully\n");
+  	}
+
 
 	
 	/* Allow Rx1/2 QEC tracking and Tx1/2 QEC tracking to run when in the radioOn state         */
 	/* Tx calibrations will only run if radioOn and the obsRx path is set to OBS_INTERNAL_CALS  */
-	printk(KERN_INFO "===> L1099: MYKONOS_enableTrackingCals;\n");
+	printk(KERN_INFO "===> L1144: MYKONOS_enableTrackingCals;\n");
+	uint32_t trackingCalMaskDpd;
+	ret =MYKONOS_getEnabledTrackingCals(phy->mykDevice, &trackingCalMaskDpd);// &mykDevice -> phy->mykDevice
+	if (ret) {
+		printk(KERN_INFO "===> L1149: MYKONOS_getEnabledTrackingCals ERROR\n");
+	}
+  	trackingCalMaskDpd |= TRACK_ORX1_QEC | TRACK_ORX2_QEC  | TRACK_TX1_DPD | TRACK_TX2_DPD;
+
+  // L141
+	printk(KERN_INFO "===> L1154: MYKONOS_enableTrackingCals(trackingCalMaskDpd);\n");
+	ret = MYKONOS_enableTrackingCals(phy->mykDevice, trackingCalMaskDpd); // &mykDevice -> phy->mykDevice
+	if (ret) {
+		printk(KERN_INFO "===> L1156: MYKONOS_getEnabledTrackingCals ERROR\n");
+	}
+	printk(KERN_INFO "===> L1159: DPD tracking calibrations completed successfully\n\n");
+#endif	
+	printk(KERN_INFO "===> L1161: MYKONOS_enableTrackingCals(phy->tracking_cal_mask);\n");
 	ret = MYKONOS_enableTrackingCals(mykDevice, phy->tracking_cal_mask);
 	if (ret) {
 		dev_err(&phy->spi->dev, "%s (%d)",
@@ -1174,6 +1194,14 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	}
 
 	/* Allow TxQEC to run when user is not actively using ORx receive path */
+	ret = MYKONOS_setObsRxPathSource(mykDevice, OBS_RXOFF);
+	if (ret) {
+		dev_err(&phy->spi->dev, "%s (%d)",
+			getMykonosErrorMessage(ret), ret);
+		ret = -EFAULT;
+		goto out_disable_obs_rx_clk;
+	}
+	
 	ret = MYKONOS_setObsRxPathSource(mykDevice, OBS_INTERNALCALS);
 	if (ret) {
 		dev_err(&phy->spi->dev, "%s (%d)",
@@ -1181,7 +1209,6 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 		ret = -EFAULT;
 		goto out_disable_obs_rx_clk;
 	}
-
 	ret = MYKONOS_setupAuxAdcs(mykDevice, 4, 1);
 	if (ret) {
 		dev_err(&phy->spi->dev, "%s (%d)",
@@ -4197,7 +4224,7 @@ static int ad9371_clk_register(struct ad9371_rf_phy *phy,
 static int ad9371_probe(struct spi_device *spi)
 {
 	printk(KERN_INFO "==============================\n");
-	printk(KERN_INFO "========= DPD test 5 =========\n");
+	printk(KERN_INFO "========= DPD test 6 =========\n");
 	printk(KERN_INFO "==============================\n");
 	struct iio_dev *indio_dev;
 	struct ad9371_rf_phy *phy;
