@@ -690,7 +690,7 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	if (has_tx_and_en(phy))
 #ifdef DPD_ON	// JM Chen@2020/01/02	
 		phy->tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD;
-		printk(KERN_INFO "test4 ======> L692: tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD; \n");
+		printk(KERN_INFO "==> L692: tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD; \n");
 #else
 		phy->tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC;
 #endif
@@ -4156,6 +4156,9 @@ static int ad9371_clk_register(struct ad9371_rf_phy *phy,
 
 static int ad9371_probe(struct spi_device *spi)
 {
+	printk(KERN_INFO "==============================\n");
+	printk(KERN_INFO "============ test 4 ==========\n");
+	printk(KERN_INFO "==============================\n");
 	struct iio_dev *indio_dev;
 	struct ad9371_rf_phy *phy;
 	struct clk *clk = NULL;
