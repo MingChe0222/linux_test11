@@ -1064,6 +1064,13 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 #ifdef DPD_ON
 	uint8_t errorFlag = 0;
 	uint8_t errorCode = 0;
+	uint32_t initCalsCompleted = 0;
+	uint16_t errorWord = 0;
+	uint16_t statusWord = 0;
+	uint8_t status = 0;
+	mykonosInitCalStatus_t initCalStatus;
+	mykonosErr_t mykError;	
+
 	if (IS_AD9375(phy)) {
 		ad9371_set_radio_state(phy, RADIO_FORCE_OFF);
 
@@ -1082,17 +1089,50 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	
 	uint32_t initCalMaskDpd = phy->init_cal_mask |= DPD_INIT; //add DPD_INIT by JM Chen @20200107
 	initCalMaskDpd = initCalMask|DPD_INIT;
-	printk(KERN_INFO "===> L1085:  MYKONOS_runInitCals;\n");
-	if ((mykError = MYKONOS_runInitCals(phy->mykDevice, initCalMaskDpd)) != MYKONOS_ERR_OK) {
-	    errorString = getMykonosErrorMessage(mykError);
-	    goto error;
-	  }
+	printk(KERN_INFO "===> L1092:  MYKONOS_runInitCals;\n");
+	mykError = MYKONOS_runInitCals(phy->mykDevice, initCalMaskDpd);
+	printk(KERN_INFO "===> L1094: MYKONOS_waitInitCals;\n");
+	mykError = MYKONOS_waitInitCals(phy->mykDevice, 60000, &errorFlag, &errorCode);
+	if ((errorFlag != 0) || (errorCode != 0)) {
+		printk(KERN_INFO "===> L1097: ((errorFlag != 0) || (errorCode != 0))\n");
+		mykError = MYKONOS_getInitCalStatus(phy->mykDevice, &initCalStatus);
+		if(mykError) {
+			dev_err(&phy->spi->dev, "%s (%d)",
+				getMykonosErrorMessage(mykError), mykError);
+		}
 
-	  printk(KERN_INFO "===> L1085: MYKONOS_waitInitCals;\n");
-	  if ((mykError = MYKONOS_waitInitCals(phy->mykDevice, 60000, &errorFlag, &errorCode)) != MYKONOS_ERR_OK) {
-	    errorString = getMykonosErrorMessage(mykError);
-	    goto error;
-	  }
+		dev_err(&phy->spi->dev, "calsDoneLifetime 0x%X, calsDoneLastRun 0x%X,"
+			" calsMinimum 0x%X, initErrCal 0x%X, initErrCode 0x%X",
+			initCalStatus.calsDoneLifetime, initCalStatus.calsDoneLastRun,
+			initCalStatus.calsMinimum, initCalStatus.initErrCal,
+			initCalStatus.initErrCode);
+
+		//abort init calibrations
+		mykError = MYKONOS_abortInitCals(phy->mykDevice, &initCalsCompleted);
+		if(mykError) {
+			dev_err(&phy->spi->dev, "%s (%d)",
+				getMykonosErrorMessage(mykError), mykError);
+		}
+
+		dev_err(&phy->spi->dev, "initCalsCompleted 0x%X", initCalsCompleted);
+
+		mykError = MYKONOS_readArmCmdStatus(phy->mykDevice, &errorWord, &statusWord);
+		if(mykError) {
+			dev_err(&phy->spi->dev, "%s (%d)",
+				getMykonosErrorMessage(mykError), mykError);
+		}
+
+		dev_err(&phy->spi->dev, "errorWord 0x%X, statusWord 0x%X", errorWord, statusWord);
+
+		mykError = MYKONOS_readArmCmdStatusByte(phy->mykDevice, 2, &status);
+
+		dev_err(&phy->spi->dev, "ArmCmdStatusByte 0x%X", status);
+
+		if(mykError) {
+			dev_err(&phy->spi->dev, "%s (%d)",
+				getMykonosErrorMessage(mykError), mykError);
+		}
+	}
 #endif	
 
 	
