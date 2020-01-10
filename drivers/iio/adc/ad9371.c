@@ -7,7 +7,7 @@
  */
 //#define DEBUG
 //#define _DEBUG
-// test6
+// test7
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/kernel.h>
@@ -3350,7 +3350,7 @@ printk(KERN_INFO "===> L3000: PAR STA");
 	AD9371_OF_PROP("adi,tx-profile-tx-bbf-3db-corner_khz", &phy->mykDevice->tx->txProfile->txBbf3dBCorner_kHz, 50000);
 	if (IS_AD9375(phy))
 	{
-		AD9371_OF_PROP("adi,tx-profile-enable-dpd-data-path", &phy->mykDevice->tx->txProfile->enableDpdDataPath, 0); //1 or 0
+		AD9371_OF_PROP("adi,tx-profile-enable-dpd-data-path", &phy->mykDevice->tx->txProfile->enableDpdDataPath, 1); //1 or 0
 		printk(KERN_INFO "===> L3250: enableDpdDataPath = 0");
 	}
 	printk(KERN_INFO "===> L3252: txProfile done");
@@ -4224,7 +4224,7 @@ static int ad9371_clk_register(struct ad9371_rf_phy *phy,
 static int ad9371_probe(struct spi_device *spi)
 {
 	printk(KERN_INFO "==============================\n");
-	printk(KERN_INFO "========= DPD test 6 =========\n");
+	printk(KERN_INFO "========= DPD test 7 =========\n");
 	printk(KERN_INFO "==============================\n");
 	struct iio_dev *indio_dev;
 	struct ad9371_rf_phy *phy;
