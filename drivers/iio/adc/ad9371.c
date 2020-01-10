@@ -7,7 +7,7 @@
  */
 //#define DEBUG
 //#define _DEBUG
-// test7
+// test7 01101240
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/kernel.h>
@@ -3351,7 +3351,7 @@ printk(KERN_INFO "===> L3000: PAR STA");
 	if (IS_AD9375(phy))
 	{
 		AD9371_OF_PROP("adi,tx-profile-enable-dpd-data-path", &phy->mykDevice->tx->txProfile->enableDpdDataPath, 1); //1 or 0
-		printk(KERN_INFO "===> L3250: enableDpdDataPath = 0");
+		printk(KERN_INFO "===> L3254: enableDpdDataPath = 1");
 	}
 	printk(KERN_INFO "===> L3252: txProfile done");
 	AD9371_GET_FIR("adi,tx-profile-tx-fir", phy->mykDevice->tx->txProfile->txFir);
@@ -4224,7 +4224,7 @@ static int ad9371_clk_register(struct ad9371_rf_phy *phy,
 static int ad9371_probe(struct spi_device *spi)
 {
 	printk(KERN_INFO "==============================\n");
-	printk(KERN_INFO "==== DPD test 7 @01101018 ====\n");
+	printk(KERN_INFO "==== DPD test 7 @01101240 ====\n");
 	printk(KERN_INFO "==============================\n");
 	struct iio_dev *indio_dev;
 	struct ad9371_rf_phy *phy;
