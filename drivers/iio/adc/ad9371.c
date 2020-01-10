@@ -7,7 +7,7 @@
  */
 //#define DEBUG
 //#define _DEBUG
-// test 8 01101240
+// test8@01101240
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/kernel.h>
