@@ -7,7 +7,7 @@
  */
 //#define DEBUG
 //#define _DEBUG
-// test7 01101240
+// test 8 01101240
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/kernel.h>
@@ -681,16 +681,17 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 
 	initCalMask = phy->init_cal_mask |= TX_BB_FILTER | ADC_TUNER | TIA_3DB_CORNER | DC_OFFSET |
 			       TX_ATTENUATION_DELAY | RX_GAIN_DELAY | FLASH_CAL |
-			       PATH_DELAY | LOOPBACK_RX_LO_DELAY | LOOPBACK_RX_RX_QEC_INIT |
-			       RX_LO_DELAY| DPD_INIT; //add DPD_INIT by JM Chen @20200107
+			       PATH_DELAY | TX_LO_LEAKAGE_INTERNAL | TX_QEC_INIT | 
+				LOOPBACK_RX_LO_DELAY | LOOPBACK_RX_RX_QEC_INIT |
+			       RX_LO_DELAY| RX_QEC_INIT; //add DPD_INIT by JM Chen @20200110_1600
 
 	if (has_rx_and_en(phy))
 		phy->tracking_cal_mask |= TRACK_RX1_QEC | TRACK_RX2_QEC;
 
 	if (has_tx_and_en(phy))
 #ifdef DPD_ON	// JM Chen@2020/01/02	
-		phy->tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD;
-		printk(KERN_INFO "==> L692: tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC | TRACK_TX1_DPD | TRACK_TX2_DPD; \n");
+		phy->tracking_cal_mask |= TRACK_ORX1_QEC | TRACK_ORX2_QEC | TRACK_RX1_QEC | TRACK_RX2_QEC | TRACK_TX1_QEC | TRACK_TX2_QEC;
+		printk(KERN_INFO "==> L692: tracking_cal_mask |= TRACK_ORX1_QEC | TRACK_ORX2_QEC | TRACK_RX1_QEC | TRACK_RX2_QEC | TRACK_TX1_QEC | TRACK_TX2_QEC; \n");
 #else
 		phy->tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC;
 #endif
@@ -924,7 +925,7 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	/*****************************************************/
 	/*** Mykonos ARM Initialization Calibrations       ***/
 	/*****************************************************/
-	printk(KERN_INFO "======> L927: CALL FUNCTION: ad9371_init_cal(phy, initCalMask)ㄤ\n");
+	printk(KERN_INFO "======> L928: CALL FUNCTION: ad9371_init_cal(phy, initCalMask);\n");
 	ret = ad9371_init_cal(phy, initCalMask);
 	if (ret != MYKONOS_ERR_OK) {
 		dev_err(&phy->spi->dev, "%s (%d)",
@@ -934,8 +935,12 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	}
 
 	/* FIXME: Add API call */
-	//ad9371_init_cal(phy, TX_LO_LEAKAGE_EXTERNAL);
-
+	
+/* Please ensure PA is enabled operational at this time */ //JM Chen @20200110_1610
+       if (initCalMask & TX_LO_LEAKAGE_EXTERNAL) {
+		ad9371_init_cal(phy, TX_LO_LEAKAGE_EXTERNAL);
+	  	printk(KERN_INFO "===> L944: CALL FUNCTION: ad9371_init_cal(phy, TX_LO_LEAKAGE_EXTERNAL);\n");
+    	} 
 	/*************************************************/
 	/**** Enable SYSREF to Mykonos JESD204B Framers ***/
 	/*************************************************/
@@ -1060,104 +1065,6 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	}
 	/*** < User: When links have been verified, proceed > ***/
 
-	//add MYKONOS_configDpd by JM Chen @20200107
-#ifdef DPD_ON
-	uint8_t errorFlag = 0;
-	uint8_t errorCode = 0;
-	uint32_t initCalsCompleted = 0;
-	uint16_t errorWord = 0;
-	uint16_t statusWord = 0;
-	uint8_t status = 0;
-	const char      *errorString;
-	mykonosInitCalStatus_t initCalStatus;
-	mykonosErr_t mykError;	
-
-	if (IS_AD9375(phy)) {
-		ad9371_set_radio_state(phy, RADIO_FORCE_OFF);
-
-		ret = MYKONOS_configDpd(phy->mykDevice);
-		if (ret != MYKONOS_ERR_OK) {
-			dev_err(&phy->spi->dev, "%s (%d)",
-				getMykonosErrorMessage(ret), ret);
-			ret = -EFAULT;
-			//goto out_unlock;
-			printk(KERN_INFO "===> 1077: ret = MYKONOS_configDpd(phy->mykDevice);===> MYKONOS_ERR_OK\n");
-		}
-		printk(KERN_INFO "===> L1078: ret = MYKONOS_configDpd(phy->mykDevice);\n");
-
-		ad9371_set_radio_state(phy, RADIO_RESTORE_STATE);
-	}	
-	
-	uint32_t initCalMaskDpd = phy->init_cal_mask |= DPD_INIT; //add DPD_INIT by JM Chen @20200107
-	initCalMaskDpd = initCalMask|DPD_INIT;
-	printk(KERN_INFO "===> L1092:  MYKONOS_runInitCals;\n");
-	mykError = MYKONOS_runInitCals(phy->mykDevice, initCalMaskDpd);
-	printk(KERN_INFO "===> L1094: MYKONOS_waitInitCals;\n");
-	mykError = MYKONOS_waitInitCals(phy->mykDevice, 60000, &errorFlag, &errorCode);
-	if ((errorFlag != 0) || (errorCode != 0)) {
-		printk(KERN_INFO "===> L1097: ((errorFlag != 0) || (errorCode != 0))\n");
-		mykError = MYKONOS_getInitCalStatus(phy->mykDevice, &initCalStatus);
-		if(mykError) {
-			dev_err(&phy->spi->dev, "%s (%d)",
-				getMykonosErrorMessage(mykError), mykError);
-		}
-
-		dev_err(&phy->spi->dev, "calsDoneLifetime 0x%X, calsDoneLastRun 0x%X,"
-			" calsMinimum 0x%X, initErrCal 0x%X, initErrCode 0x%X",
-			initCalStatus.calsDoneLifetime, initCalStatus.calsDoneLastRun,
-			initCalStatus.calsMinimum, initCalStatus.initErrCal,
-			initCalStatus.initErrCode);
-
-		//abort init calibrations
-		mykError = MYKONOS_abortInitCals(phy->mykDevice, &initCalsCompleted);
-		if(mykError) {
-			dev_err(&phy->spi->dev, "%s (%d)",
-				getMykonosErrorMessage(mykError), mykError);
-		}
-
-		dev_err(&phy->spi->dev, "initCalsCompleted 0x%X", initCalsCompleted);
-
-		mykError = MYKONOS_readArmCmdStatus(phy->mykDevice, &errorWord, &statusWord);
-		if(mykError) {
-			dev_err(&phy->spi->dev, "%s (%d)",
-				getMykonosErrorMessage(mykError), mykError);
-		}
-
-		dev_err(&phy->spi->dev, "errorWord 0x%X, statusWord 0x%X", errorWord, statusWord);
-
-		mykError = MYKONOS_readArmCmdStatusByte(phy->mykDevice, 2, &status);
-
-		dev_err(&phy->spi->dev, "ArmCmdStatusByte 0x%X", status);
-
-		if(mykError) {
-			dev_err(&phy->spi->dev, "%s (%d)",
-				getMykonosErrorMessage(mykError), mykError);
-		}
-	}
-	else {
-    	printk(KERN_INFO "===> L1137: DPD Initial Calibrations completed successfully\n");
-  	}
-
-
-	
-	/* Allow Rx1/2 QEC tracking and Tx1/2 QEC tracking to run when in the radioOn state         */
-	/* Tx calibrations will only run if radioOn and the obsRx path is set to OBS_INTERNAL_CALS  */
-	printk(KERN_INFO "===> L1144: MYKONOS_enableTrackingCals;\n");
-	uint32_t trackingCalMaskDpd;
-	ret =MYKONOS_getEnabledTrackingCals(phy->mykDevice, &trackingCalMaskDpd);// &mykDevice -> phy->mykDevice
-	if (ret) {
-		printk(KERN_INFO "===> L1149: MYKONOS_getEnabledTrackingCals ERROR\n");
-	}
-  	trackingCalMaskDpd |= TRACK_ORX1_QEC | TRACK_ORX2_QEC  | TRACK_TX1_DPD | TRACK_TX2_DPD;
-
-  // L141
-	printk(KERN_INFO "===> L1154: MYKONOS_enableTrackingCals(trackingCalMaskDpd);\n");
-	ret = MYKONOS_enableTrackingCals(phy->mykDevice, trackingCalMaskDpd); // &mykDevice -> phy->mykDevice
-	if (ret) {
-		printk(KERN_INFO "===> L1156: MYKONOS_getEnabledTrackingCals ERROR\n");
-	}
-	printk(KERN_INFO "===> L1159: DPD tracking calibrations completed successfully\n\n");
-#endif	
 	printk(KERN_INFO "===> L1161: MYKONOS_enableTrackingCals(phy->tracking_cal_mask);\n");
 	ret = MYKONOS_enableTrackingCals(mykDevice, phy->tracking_cal_mask);
 	if (ret) {
@@ -1232,6 +1139,120 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 		ret = -EFAULT;
 		goto out_disable_obs_rx_clk;
 	}
+	
+		//add MYKONOS_configDpd by JM Chen @20200107
+#ifdef DPD_ON
+	uint8_t errorFlag = 0;
+	uint8_t errorCode = 0;
+	uint32_t initCalsCompleted = 0;
+	uint16_t errorWord = 0;
+	uint16_t statusWord = 0;
+	uint8_t status = 0;
+	mykonosInitCalStatus_t initCalStatus;
+	mykonosErr_t mykError;	
+
+	printk(KERN_INFO "===> L1154: ret = MYKONOS_radioOff \n");
+	ret = MYKONOS_radioOff(phy->mykDevice);
+	if (ret == MYKONOS_ERR_OK)
+		printk(KERN_INFO "===> L1157: ret = MYKONOS_radioOff ===> MYKONOS_ERR_OK\n");
+	
+	printk(KERN_INFO "===> L1159: ret = MYKONOS_configDpd \n");
+	ret = MYKONOS_configDpd(phy->mykDevice);
+	if (ret == MYKONOS_ERR_OK)
+		printk(KERN_INFO "===> L1162: ret = MYKONOS_configDpd ===> MYKONOS_ERR_OK\n");
+	
+	printk(KERN_INFO "===> L1164: ret = MYKONOS_configClgc \n");
+	ret = MYKONOS_configClgc(phy->mykDevice);
+	if (ret == MYKONOS_ERR_OK)
+		printk(KERN_INFO "===> L1167: ret = MYKONOS_configClgc ===> MYKONOS_ERR_OK\n");
+	
+	printk(KERN_INFO "===> L1169: ret = MYKONOS_configVswr \n");
+	ret = MYKONOS_configVswr(phy->mykDevice);
+	if (ret == MYKONOS_ERR_OK)
+		printk(KERN_INFO "===> L1161: ret = MYKONOS_configVswr ===> MYKONOS_ERR_OK\n");
+	
+	printk(KERN_INFO "===> L1174: ret = MYKONOS_radioOff \n");
+	ret = MYKONOS_radioOff(phy->mykDevice);
+	if (ret == MYKONOS_ERR_OK)
+		printk(KERN_INFO "===> L1177: ret = MYKONOS_radioOff ===> MYKONOS_ERR_OK\n");
+	
+	printk(KERN_INFO "===> L1179: "DPD configuration completed successfully\n"");
+	
+	uint32_t initCalMaskDpd = DPD_INIT; //add DPD_INIT by JM Chen @20200107
+	initCalMaskDpd = initCalMask|DPD_INIT;
+	printk(KERN_INFO "===> L1183:  MYKONOS_runInitCals(initCalMaskDpd);\n");
+	mykError = MYKONOS_runInitCals(phy->mykDevice, initCalMaskDpd);
+	printk(KERN_INFO "===> L1185: MYKONOS_waitInitCals;\n");
+	mykError = MYKONOS_waitInitCals(phy->mykDevice, 60000, &errorFlag, &errorCode);
+	if ((errorFlag != 0) || (errorCode != 0)) {
+		printk(KERN_INFO "===> L1097: ((errorFlag != 0) || (errorCode != 0))\n");
+		mykError = MYKONOS_getInitCalStatus(phy->mykDevice, &initCalStatus);
+		if(mykError) {
+			dev_err(&phy->spi->dev, "%s (%d)",
+				getMykonosErrorMessage(mykError), mykError);
+		}
+
+		dev_err(&phy->spi->dev, "calsDoneLifetime 0x%X, calsDoneLastRun 0x%X,"
+			" calsMinimum 0x%X, initErrCal 0x%X, initErrCode 0x%X",
+			initCalStatus.calsDoneLifetime, initCalStatus.calsDoneLastRun,
+			initCalStatus.calsMinimum, initCalStatus.initErrCal,
+			initCalStatus.initErrCode);
+
+		//abort init calibrations
+		mykError = MYKONOS_abortInitCals(phy->mykDevice, &initCalsCompleted);
+		if(mykError) {
+			dev_err(&phy->spi->dev, "%s (%d)",
+				getMykonosErrorMessage(mykError), mykError);
+		}
+
+		dev_err(&phy->spi->dev, "initCalsCompleted 0x%X", initCalsCompleted);
+
+		mykError = MYKONOS_readArmCmdStatus(phy->mykDevice, &errorWord, &statusWord);
+		if(mykError) {
+			dev_err(&phy->spi->dev, "%s (%d)",
+				getMykonosErrorMessage(mykError), mykError);
+		}
+
+		dev_err(&phy->spi->dev, "errorWord 0x%X, statusWord 0x%X", errorWord, statusWord);
+
+		mykError = MYKONOS_readArmCmdStatusByte(phy->mykDevice, 2, &status);
+
+		dev_err(&phy->spi->dev, "ArmCmdStatusByte 0x%X", status);
+
+		if(mykError) {
+			dev_err(&phy->spi->dev, "%s (%d)",
+				getMykonosErrorMessage(mykError), mykError);
+		}
+	}
+	else {
+    	printk(KERN_INFO "===> L1228: DPD Initial Calibrations completed successfully\n");
+  	}
+
+
+	
+	/* Allow Rx1/2 QEC tracking and Tx1/2 QEC tracking to run when in the radioOn state         */
+	/* Tx calibrations will only run if radioOn and the obsRx path is set to OBS_INTERNAL_CALS  */
+	printk(KERN_INFO "===> L1235: MYKONOS_enableTrackingCals;\n");
+	uint32_t trackingCalMaskDpd;
+	ret =MYKONOS_getEnabledTrackingCals(phy->mykDevice, &trackingCalMaskDpd);// &mykDevice -> phy->mykDevice
+	if (ret) {
+		printk(KERN_INFO "===> L1239: MYKONOS_getEnabledTrackingCals ERROR\n");
+	}
+  	trackingCalMaskDpd |= TRACK_ORX1_QEC | TRACK_ORX2_QEC  | TRACK_TX1_DPD | TRACK_TX2_DPD;
+
+	printk(KERN_INFO "===> L1243: MYKONOS_enableTrackingCals(trackingCalMaskDpd);\n");
+	ret = MYKONOS_enableTrackingCals(phy->mykDevice, trackingCalMaskDpd); // &mykDevice -> phy->mykDevice
+	if (ret) {
+		printk(KERN_INFO "===> L1246: MYKONOS_getEnabledTrackingCals ERROR\n");
+	}
+	printk(KERN_INFO "===> L1248: DPD tracking calibrations completed successfully\n\n");
+	
+	ret = MYKONOS_radioOn(phy->mykDevice);
+	if (ret == MYKONOS_ERR_OK)
+		printk(KERN_INFO "===> L1157: ret = MYKONOS_radioOn ===> MYKONOS_ERR_OK\n");	
+#endif	
+	
+	
 	
 	clk_set_rate(phy->clks[RX_SAMPL_CLK],
 		     mykDevice->rx->rxProfile->iqRate_kHz * 1000);
@@ -4224,7 +4245,7 @@ static int ad9371_clk_register(struct ad9371_rf_phy *phy,
 static int ad9371_probe(struct spi_device *spi)
 {
 	printk(KERN_INFO "==============================\n");
-	printk(KERN_INFO "==== DPD test 7 @01101240 ====\n");
+	printk(KERN_INFO "==== DPD test 8 @01101240 ====\n");
 	printk(KERN_INFO "==============================\n");
 	struct iio_dev *indio_dev;
 	struct ad9371_rf_phy *phy;
