@@ -7,7 +7,7 @@
  */
 //#define DEBUG
 //#define _DEBUG
-// test8@01101240
+// test8@01101610
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/kernel.h>
@@ -690,8 +690,8 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 
 	if (has_tx_and_en(phy))
 #ifdef DPD_ON	// JM Chen@2020/01/02	
-		phy->tracking_cal_mask |= TRACK_ORX1_QEC | TRACK_ORX2_QEC | TRACK_RX1_QEC | TRACK_RX2_QEC | TRACK_TX1_QEC | TRACK_TX2_QEC;
-		printk(KERN_INFO "==> L692: tracking_cal_mask |= TRACK_ORX1_QEC | TRACK_ORX2_QEC | TRACK_RX1_QEC | TRACK_RX2_QEC | TRACK_TX1_QEC | TRACK_TX2_QEC; \n");
+		phy->tracking_cal_mask |= TRACK_ORX1_QEC | TRACK_ORX2_QEC | TRACK_TX1_QEC | TRACK_TX2_QEC;
+		printk(KERN_INFO "==> L692: tracking_cal_mask |= TRACK_ORX1_QEC | TRACK_ORX2_QEC | TRACK_TX1_QEC | TRACK_TX2_QEC; \n");
 #else
 		phy->tracking_cal_mask |= TRACK_TX1_QEC | TRACK_TX2_QEC;
 #endif
@@ -898,9 +898,9 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 				getMykonosErrorMessage(ret), ret);
 			ret = -EFAULT;
 			goto out;
-			printk(KERN_INFO "===> L899: Dpd initial configuration ERROR;\n");
+			printk(KERN_INFO "===> L901: Dpd initial configuration ERROR;\n");
 		}
-		printk(KERN_INFO "===> L901: Dpd initial configuration done;\n");
+		printk(KERN_INFO "===> L903: Dpd initial configuration done;\n");
 		ret = MYKONOS_configClgc(mykDevice);
 		if (ret != MYKONOS_ERR_OK) {
 			dev_err(&phy->spi->dev, "%s (%d)",
@@ -1176,7 +1176,7 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	if (ret == MYKONOS_ERR_OK)
 		printk(KERN_INFO "===> L1177: ret = MYKONOS_radioOff ===> MYKONOS_ERR_OK\n");
 	
-	printk(KERN_INFO "===> L1179: "DPD configuration completed successfully\n"");
+	printk(KERN_INFO "===> L1179: DPD configuration completed successfully\n");
 	
 	uint32_t initCalMaskDpd = DPD_INIT; //add DPD_INIT by JM Chen @20200107
 	initCalMaskDpd = initCalMask|DPD_INIT;
@@ -4245,7 +4245,7 @@ static int ad9371_clk_register(struct ad9371_rf_phy *phy,
 static int ad9371_probe(struct spi_device *spi)
 {
 	printk(KERN_INFO "==============================\n");
-	printk(KERN_INFO "==== DPD test 8 @01101240 ====\n");
+	printk(KERN_INFO "==== DPD test 8 @01101610 ====\n");
 	printk(KERN_INFO "==============================\n");
 	struct iio_dev *indio_dev;
 	struct ad9371_rf_phy *phy;
@@ -4338,10 +4338,10 @@ static int ad9371_probe(struct spi_device *spi)
 			"request_firmware() failed with %d\n", ret);
 		return ret;
 	}
-	printk(KERN_INFO "===> L4214: First, ad9371_setup(phy)\n");
+	printk(KERN_INFO "===> L4341: First, ad9371_setup(phy)\n");
 	ret = ad9371_setup(phy);
 	if (ret < 0) {
-		/* Try once more */printk(KERN_INFO "===> L4217: Secondly, ad9371_setup(phy)\n");
+		/* Try once more */printk(KERN_INFO "===> L4344: Secondly, ad9371_setup(phy)\n");
 		ret = ad9371_setup(phy);
 		if (ret < 0)
 			goto out_unregister_notifier;
