@@ -7,7 +7,7 @@
  */
 //#define DEBUG
 //#define _DEBUG
-// test8@01101610
+// test8@01141120
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/kernel.h>
@@ -3384,7 +3384,7 @@ printk(KERN_INFO "===> L3000: PAR STA");
 
 	AD9371_OF_PROP("adi,tx-settings-tx-channels-enable", &phy->mykDevice->tx->txChannels, TX1_TX2);
 	AD9371_OF_PROP("adi,tx-settings-tx-pll-use-external-lo", &phy->mykDevice->tx->txPllUseExternalLo, 0);
-	AD9371_OF_PROP("adi,tx-settings-tx-pll-lo-frequency_hz", &phy->mykDevice->tx->txPllLoFrequency_Hz, 2650000000U);
+	AD9371_OF_PROP("adi,tx-settings-tx-pll-lo-frequency_hz", &phy->mykDevice->tx->txPllLoFrequency_Hz, 2655000000U);
 	AD9371_OF_PROP("adi,tx-settings-tx-atten-step-size", &phy->mykDevice->tx->txAttenStepSize, 0);
 	AD9371_OF_PROP("adi,tx-settings-tx1-atten_mdb", &phy->mykDevice->tx->tx1Atten_mdB, 100);
 	AD9371_OF_PROP("adi,tx-settings-tx2-atten_mdb", &phy->mykDevice->tx->tx2Atten_mdB, 100);
@@ -3434,12 +3434,12 @@ printk(KERN_INFO "===> L3000: PAR STA");
 
 	AD9371_OF_PROP("adi,rx-settings-rx-channels-enable", &phy->mykDevice->rx->rxChannels, RX1_RX2);
 	AD9371_OF_PROP("adi,rx-settings-rx-pll-use-external-lo", &phy->mykDevice->rx->rxPllUseExternalLo, 0);
-	AD9371_OF_PROP("adi,rx-settings-rx-pll-lo-frequency_hz", &phy->mykDevice->rx->rxPllLoFrequency_Hz, 2500000000U);
+	AD9371_OF_PROP("adi,rx-settings-rx-pll-lo-frequency_hz", &phy->mykDevice->rx->rxPllLoFrequency_Hz, 2535000000U);
 	AD9371_OF_PROP("adi,rx-settings-real-if-data", &phy->mykDevice->rx->realIfData, 0);
 
 	AD9371_OF_PROP("adi,obs-settings-obs-rx-channels-enable", &phy->mykDevice->obsRx->obsRxChannelsEnable, MYK_ORX1_ORX2 | MYK_SNRXA_B_C);
 	AD9371_OF_PROP("adi,obs-settings-obs-rx-lo-source", &phy->mykDevice->obsRx->obsRxLoSource, OBSLO_TX_PLL); //default: 0, option: OBSLO_TX_PLL
-	AD9371_OF_PROP("adi,obs-settings-sniffer-pll-lo-frequency_hz", &phy->mykDevice->obsRx->snifferPllLoFrequency_Hz, 2600000000U);
+	AD9371_OF_PROP("adi,obs-settings-sniffer-pll-lo-frequency_hz", &phy->mykDevice->obsRx->snifferPllLoFrequency_Hz, 2655000000U);
 	AD9371_OF_PROP("adi,obs-settings-real-if-data", &phy->mykDevice->obsRx->realIfData, 0);
 	AD9371_OF_PROP("adi,obs-settings-default-obs-rx-channel", &phy->mykDevice->obsRx->defaultObsRxChannel, OBS_INTERNALCALS); //default: OBS_INTERNALCALS , option: OBS_RXOFF 
 
@@ -4245,7 +4245,7 @@ static int ad9371_clk_register(struct ad9371_rf_phy *phy,
 static int ad9371_probe(struct spi_device *spi)
 {
 	printk(KERN_INFO "==============================\n");
-	printk(KERN_INFO "==== DPD test 8 @01101610 ====\n");
+	printk(KERN_INFO "==== DPD test 8 @01141120 ====\n");
 	printk(KERN_INFO "==============================\n");
 	struct iio_dev *indio_dev;
 	struct ad9371_rf_phy *phy;
