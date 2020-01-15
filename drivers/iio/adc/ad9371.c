@@ -916,9 +916,9 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 			ret = -EFAULT;
 			goto out;
 		}
-
-		phy->dpd_actuator_en[0] = true;
-		phy->dpd_actuator_en[1] = true;
+		printk(KERN_INFO "===> L919: phy->dpd_actuator_en[x] = false;\n");
+		phy->dpd_actuator_en[0] = false; //default: true
+		phy->dpd_actuator_en[1] = false; //default: true
 
 	}
 
@@ -3361,8 +3361,8 @@ printk(KERN_INFO "===> L3000: PAR STA");
 	AD9371_OF_PROP("adi,tx-profile-tx-bbf-3db-corner_khz", &phy->mykDevice->tx->txProfile->txBbf3dBCorner_kHz, 50000);
 	if (IS_AD9375(phy))
 	{
-		AD9371_OF_PROP("adi,tx-profile-enable-dpd-data-path", &phy->mykDevice->tx->txProfile->enableDpdDataPath, 0); //1 or 0
-		printk(KERN_INFO "===> L3254: enableDpdDataPath = 0");
+		AD9371_OF_PROP("adi,tx-profile-enable-dpd-data-path", &phy->mykDevice->tx->txProfile->enableDpdDataPath, 1); //1 or 0
+		printk(KERN_INFO "===> L3254: enableDpdDataPath = 1");
 	}
 	printk(KERN_INFO "===> L3252: txProfile done");
 	AD9371_GET_FIR("adi,tx-profile-tx-fir", phy->mykDevice->tx->txProfile->txFir);
