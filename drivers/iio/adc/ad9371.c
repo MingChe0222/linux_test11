@@ -7,7 +7,7 @@
  */
 //#define DEBUG
 //#define _DEBUG
-// test8@01141120
+// DPD test9@01151500
 #include <linux/module.h>
 #include <linux/device.h>
 #include <linux/kernel.h>
@@ -1153,28 +1153,18 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 
 	printk(KERN_INFO "===> L1154: ret = MYKONOS_radioOff \n");
 	ret = MYKONOS_radioOff(phy->mykDevice);
-	if (ret == MYKONOS_ERR_OK)
-		printk(KERN_INFO "===> L1157: ret = MYKONOS_radioOff ===> MYKONOS_ERR_OK\n");
 	
 	printk(KERN_INFO "===> L1159: ret = MYKONOS_configDpd \n");
 	ret = MYKONOS_configDpd(phy->mykDevice);
-	if (ret == MYKONOS_ERR_OK)
-		printk(KERN_INFO "===> L1162: ret = MYKONOS_configDpd ===> MYKONOS_ERR_OK\n");
 	
 	printk(KERN_INFO "===> L1164: ret = MYKONOS_configClgc \n");
 	ret = MYKONOS_configClgc(phy->mykDevice);
-	if (ret == MYKONOS_ERR_OK)
-		printk(KERN_INFO "===> L1167: ret = MYKONOS_configClgc ===> MYKONOS_ERR_OK\n");
 	
 	printk(KERN_INFO "===> L1169: ret = MYKONOS_configVswr \n");
 	ret = MYKONOS_configVswr(phy->mykDevice);
-	if (ret == MYKONOS_ERR_OK)
-		printk(KERN_INFO "===> L1161: ret = MYKONOS_configVswr ===> MYKONOS_ERR_OK\n");
 	
 	printk(KERN_INFO "===> L1174: ret = MYKONOS_radioOff \n");
 	ret = MYKONOS_radioOff(phy->mykDevice);
-	if (ret == MYKONOS_ERR_OK)
-		printk(KERN_INFO "===> L1177: ret = MYKONOS_radioOff ===> MYKONOS_ERR_OK\n");
 	
 	printk(KERN_INFO "===> L1179: DPD configuration completed successfully\n");
 	
@@ -1249,7 +1239,7 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 	
 	ret = MYKONOS_radioOn(phy->mykDevice);
 	if (ret == MYKONOS_ERR_OK)
-		printk(KERN_INFO "===> L1157: ret = MYKONOS_radioOn ===> MYKONOS_ERR_OK\n");	
+		printk(KERN_INFO "===> L1157: ret = MYKONOS_radioOn ===> OK\n");	
 #endif	
 	
 	
@@ -3371,8 +3361,8 @@ printk(KERN_INFO "===> L3000: PAR STA");
 	AD9371_OF_PROP("adi,tx-profile-tx-bbf-3db-corner_khz", &phy->mykDevice->tx->txProfile->txBbf3dBCorner_kHz, 50000);
 	if (IS_AD9375(phy))
 	{
-		AD9371_OF_PROP("adi,tx-profile-enable-dpd-data-path", &phy->mykDevice->tx->txProfile->enableDpdDataPath, 1); //1 or 0
-		printk(KERN_INFO "===> L3254: enableDpdDataPath = 1");
+		AD9371_OF_PROP("adi,tx-profile-enable-dpd-data-path", &phy->mykDevice->tx->txProfile->enableDpdDataPath, 0); //1 or 0
+		printk(KERN_INFO "===> L3254: enableDpdDataPath = 0");
 	}
 	printk(KERN_INFO "===> L3252: txProfile done");
 	AD9371_GET_FIR("adi,tx-profile-tx-fir", phy->mykDevice->tx->txProfile->txFir);
@@ -4245,7 +4235,7 @@ static int ad9371_clk_register(struct ad9371_rf_phy *phy,
 static int ad9371_probe(struct spi_device *spi)
 {
 	printk(KERN_INFO "==============================\n");
-	printk(KERN_INFO "==== DPD test 8 @01141120 ====\n");
+	printk(KERN_INFO "===== DPD test9@01151500 =====\n");
 	printk(KERN_INFO "==============================\n");
 	struct iio_dev *indio_dev;
 	struct ad9371_rf_phy *phy;
