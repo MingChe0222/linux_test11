@@ -916,9 +916,9 @@ static int ad9371_setup(struct ad9371_rf_phy *phy)
 			ret = -EFAULT;
 			goto out;
 		}
-		printk(KERN_INFO "===> L919: phy->dpd_actuator_en[x] = false;\n");
-		phy->dpd_actuator_en[0] = false; //default: true
-		phy->dpd_actuator_en[1] = false; //default: true
+		printk(KERN_INFO "===> L919: phy->dpd_actuator_en[x] = true;\n");
+		phy->dpd_actuator_en[0] = true; //default: true
+		phy->dpd_actuator_en[1] = true; //default: true
 
 	}
 
