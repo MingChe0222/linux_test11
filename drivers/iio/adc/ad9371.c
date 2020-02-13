@@ -4235,7 +4235,7 @@ static int ad9371_clk_register(struct ad9371_rf_phy *phy,
 static int ad9371_probe(struct spi_device *spi)
 {
 	printk(KERN_INFO "==============================\n");
-	printk(KERN_INFO "===== DPD test9@01151500 =====\n");
+	printk(KERN_INFO "===== MC DPD test9@01151500 =====\n");
 	printk(KERN_INFO "==============================\n");
 	struct iio_dev *indio_dev;
 	struct ad9371_rf_phy *phy;
